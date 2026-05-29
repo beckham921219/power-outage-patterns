@@ -1,0 +1,8 @@
+title: What Makes Power Outages Last Longer?
+description: A UCSD DSC 80 data science project analyzing patterns and severity in major U.S. power outages.
+
+remote_theme: broccolini/swiss
+plugins:
+  - jekyll-remote-theme
+
+theme_color: white
