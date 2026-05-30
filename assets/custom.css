@@ -1,0 +1,81 @@
+/* ── Tables ──────────────────────────────────────────────────────────── */
+table {
+  width: 100% !important;
+  border-collapse: collapse;
+  font-size: 0.88em;
+  margin: 1.5em 0;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.10);
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+thead tr {
+  background: #1565C0;
+  color: #ffffff;
+  text-align: left;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+}
+
+th, td {
+  padding: 11px 16px;
+  text-align: left;
+}
+
+tbody tr {
+  border-bottom: 1px solid #e0e0e0;
+}
+
+tbody tr:nth-child(even) {
+  background-color: #EEF4FB;
+}
+
+tbody tr:hover {
+  background-color: #DDEEFF;
+  transition: background-color 0.15s ease;
+}
+
+tbody tr:last-child {
+  border-bottom: 2px solid #1565C0;
+}
+
+/* ── iframes (plots) ─────────────────────────────────────────────────── */
+iframe {
+  display: block;
+  width: 100% !important;
+  max-width: 100%;
+  border-radius: 8px;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.12);
+  margin: 1em 0 2em 0;
+}
+
+/* ── Headings ────────────────────────────────────────────────────────── */
+h2 {
+  border-left: 5px solid #1565C0;
+  padding-left: 12px;
+  color: #1a1a2e;
+  margin-top: 2em;
+}
+
+h3 {
+  color: #1565C0;
+  margin-top: 1.5em;
+}
+
+/* ── Body text ───────────────────────────────────────────────────────── */
+body {
+  font-size: 1.0em;
+  line-height: 1.75;
+  color: #1a1a1a;
+}
+
+/* ── Blockquote (used for the main question) ─────────────────────────── */
+blockquote {
+  border-left: 4px solid #1565C0;
+  background: #EEF4FB;
+  padding: 12px 20px;
+  border-radius: 0 8px 8px 0;
+  color: #1a1a2e;
+  font-style: normal;
+  margin: 1.5em 0;
+}
