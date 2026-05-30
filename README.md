@@ -251,7 +251,7 @@ The final model reduces MAE by **292 minutes** and improves R² from 0.173 to 0.
 
 <iframe
   src="assets/actual_vs_predicted.html"
-  width="800"
+  width="100%"
   height="500"
   frameborder="0"
 ></iframe>
@@ -283,7 +283,7 @@ Severe weather outages have the most variable durations in the dataset, ranging 
 
 <iframe
   src="assets/fairness_permutation.html"
-  width="800"
+  width="100%"
   height="450"
   frameborder="0"
 ></iframe>
