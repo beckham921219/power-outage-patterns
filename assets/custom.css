@@ -1,7 +1,7 @@
 /* ── Tables ──────────────────────────────────────────────────────────── */
 table {
   display: block;
-  width: 100% !important;
+  width: max-content !important;
   max-width: 100%;
   overflow-x: auto;
   overflow-y: hidden;
@@ -11,13 +11,6 @@ table {
   box-shadow: 0 2px 8px rgba(0,0,0,0.10);
   border-radius: 8px;
   -webkit-overflow-scrolling: touch;
-}
-
-/* Keeps the actual table layout from squeezing too much */
-table thead,
-table tbody,
-table tr {
-  width: 100%;
 }
 
 thead tr {
@@ -35,16 +28,12 @@ th, td {
   white-space: nowrap;
 }
 
-/* Let long description cells wrap instead of forcing huge width */
-td:last-child {
+/* Let 2-column description tables wrap normally */
+table th:nth-child(2):last-child,
+table td:nth-child(2):last-child {
   white-space: normal;
-  min-width: 260px;
-}
-
-/* Make the very wide cleaned DataFrame table scroll instead of getting squeezed */
-table th,
-table td {
-  border-bottom: 1px solid #e0e0e0;
+  min-width: 360px;
+  max-width: 760px;
 }
 
 tbody tr {
@@ -105,40 +94,71 @@ blockquote {
   margin: 1.5em 0;
 }
 
-/* ── Reduce gap between theme description and page content ───────────── */
+/* ── Pull byline closer to theme description ─────────────────────────── */
 header {
-  padding-bottom: 28px !important;
-  margin-bottom: 18px !important;
+  padding-bottom: 12px !important;
+  margin-bottom: 0 !important;
 }
 
 #main_content,
 section {
-  margin-top: 0 !important;
   padding-top: 0 !important;
-}
-
-hr {
-  margin: 1.2em 0 1.6em 0;
-}
-
-/* Byline under the header */
-.byline {
   margin-top: 0 !important;
-  margin-bottom: 1.6em;
+}
+
+#main_content > hr:first-child,
+section > hr:first-child {
+  display: none !important;
+}
+
+.byline {
+  margin-top: -25px !important;
+  margin-bottom: 1.4em !important;
   font-size: 1.1em;
   font-weight: 700;
   color: #34445c;
 }
 
-/* ── Replace automatic GitHub Pages footer ───────────────────────────── */
-footer {
+.byline a,
+.byline a:visited {
+  color: inherit !important;
+  text-decoration: none;
+}
+
+.byline a:hover {
+  text-decoration: underline;
+}
+
+/* ── Hide automatic GitHub Pages footer ──────────────────────────────── */
+footer,
+.site-footer,
+#footer_wrap,
+#footer_wrap *,
+.site-footer-owner,
+.site-footer-credits {
   display: none !important;
 }
 
+/* ── Custom footer ───────────────────────────────────────────────────── */
 .project-footer {
   margin-top: 3em;
   padding-top: 1.2em;
   border-top: 1px solid #d9e2ef;
-  color: #4b5563;
+  color: #1a1a1a;
   font-size: 0.95em;
+}
+
+.project-footer a,
+.project-footer a:visited {
+  color: inherit !important;
+  text-decoration: none;
+}
+
+.project-footer a:hover {
+  text-decoration: underline;
+}
+
+hr {
+  margin-top: -45px !important;
+  margin-bottom: 1.4em !important;
 }
