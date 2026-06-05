@@ -1,9 +1,6 @@
-<link rel="stylesheet" href="assets/custom.css">
+<link rel="stylesheet" href="{{ '/assets/custom.css' | relative_url }}">
 
-
-# What Makes Power Outages Last Longer?
-
-**By Beckham Lee and Will Shin**
+<p class="byline"><strong>By Beckham Lee and Will Shin</strong></p>
 
 ## Introduction
 
