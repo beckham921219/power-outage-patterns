@@ -1,81 +1,173 @@
+/* ── Base layout ─────────────────────────────────────────────────────── */
+body {
+  font-size: 16.5px;
+  line-height: 1.7;
+  color: #1f2937;
+  background: #f8fafc;
+}
+
+#main_content,
+section,
+.inner {
+  max-width: 980px;
+}
+
+/* Better paragraph spacing */
+p {
+  margin: 0.8em 0 1.1em;
+}
+
+/* Byline under title */
+.byline {
+  font-size: 1.05em;
+  color: #475569;
+  margin-top: -0.5em;
+  margin-bottom: 2em;
+}
+
+/* ── Headings ────────────────────────────────────────────────────────── */
+h2 {
+  border-left: 6px solid #1565C0;
+  padding-left: 14px;
+  color: #111827;
+  margin-top: 2.4em;
+  margin-bottom: 0.9em;
+  font-weight: 800;
+}
+
+h3 {
+  color: #1565C0;
+  margin-top: 1.8em;
+  margin-bottom: 0.6em;
+  font-weight: 750;
+}
+
+/* ── Links and inline code ───────────────────────────────────────────── */
+a {
+  color: #1565C0;
+}
+
+code {
+  background: #f1f5f9;
+  color: #0f172a;
+  border-radius: 5px;
+  padding: 0.12em 0.35em;
+  font-size: 0.9em;
+}
+
+/* ── Main question blockquote ────────────────────────────────────────── */
+blockquote {
+  border-left: 5px solid #1565C0;
+  background: #EEF4FB;
+  padding: 16px 22px;
+  border-radius: 0 10px 10px 0;
+  color: #0f172a;
+  font-style: normal;
+  margin: 1.6em 0 2em;
+  box-shadow: 0 2px 8px rgba(15, 23, 42, 0.06);
+}
+
+blockquote p {
+  margin: 0;
+  font-size: 1.08em;
+}
+
 /* ── Tables ──────────────────────────────────────────────────────────── */
 table {
-  width: 100% !important;
+  display: block;
+  width: 100%;
+  overflow-x: auto;
   border-collapse: collapse;
-  font-size: 0.88em;
-  margin: 1.5em 0;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.10);
-  border-radius: 8px;
-  overflow: hidden;
+  font-size: 0.9em;
+  margin: 1.4em 0 2em;
+  background: #ffffff;
+  box-shadow: 0 3px 14px rgba(15, 23, 42, 0.10);
+  border-radius: 10px;
+  border: 1px solid #dbe3ef;
+}
+
+thead {
+  background: #1565C0;
+  color: #ffffff;
 }
 
 thead tr {
   background: #1565C0;
   color: #ffffff;
-  text-align: left;
-  font-weight: 700;
-  letter-spacing: 0.03em;
 }
 
-th, td {
-  padding: 11px 16px;
+th {
+  padding: 12px 15px;
   text-align: left;
+  font-weight: 800;
+  letter-spacing: 0.02em;
+  white-space: nowrap;
 }
 
-tbody tr {
-  border-bottom: 1px solid #e0e0e0;
+td {
+  padding: 11px 15px;
+  text-align: left;
+  border-bottom: 1px solid #e5eaf2;
+  vertical-align: top;
 }
 
 tbody tr:nth-child(even) {
-  background-color: #EEF4FB;
+  background-color: #F4F8FC;
 }
 
 tbody tr:hover {
-  background-color: #DDEEFF;
-  transition: background-color 0.15s ease;
+  background-color: #E8F2FF;
 }
 
-tbody tr:last-child {
-  border-bottom: 2px solid #1565C0;
+tbody tr:last-child td {
+  border-bottom: none;
 }
 
-/* ── iframes (plots) ─────────────────────────────────────────────────── */
+/* Keep numeric columns readable */
+td:nth-child(n+2),
+th:nth-child(n+2) {
+  white-space: nowrap;
+}
+
+/* ── Plotly iframes ──────────────────────────────────────────────────── */
 iframe {
   display: block;
   width: 100% !important;
   max-width: 100%;
-  border-radius: 8px;
-  box-shadow: 0 2px 10px rgba(0,0,0,0.12);
-  margin: 1em 0 2em 0;
+  border: 1px solid #dbe3ef;
+  border-radius: 12px;
+  background: #ffffff;
+  box-shadow: 0 4px 18px rgba(15, 23, 42, 0.12);
+  margin: 1.2em 0 2.2em;
 }
 
-/* ── Headings ────────────────────────────────────────────────────────── */
-h2 {
-  border-left: 5px solid #1565C0;
-  padding-left: 12px;
-  color: #1a1a2e;
-  margin-top: 2em;
+/* ── Lists ───────────────────────────────────────────────────────────── */
+li {
+  margin: 0.35em 0;
 }
 
-h3 {
-  color: #1565C0;
-  margin-top: 1.5em;
+/* ── Horizontal rules ────────────────────────────────────────────────── */
+hr {
+  border: none;
+  border-top: 1px solid #dbe3ef;
+  margin: 2.5em 0;
 }
 
-/* ── Body text ───────────────────────────────────────────────────────── */
-body {
-  font-size: 1.0em;
-  line-height: 1.75;
-  color: #1a1a1a;
-}
+/* ── Mobile friendliness ─────────────────────────────────────────────── */
+@media (max-width: 700px) {
+  body {
+    font-size: 15.5px;
+  }
 
-/* ── Blockquote (used for the main question) ─────────────────────────── */
-blockquote {
-  border-left: 4px solid #1565C0;
-  background: #EEF4FB;
-  padding: 12px 20px;
-  border-radius: 0 8px 8px 0;
-  color: #1a1a2e;
-  font-style: normal;
-  margin: 1.5em 0;
+  h2 {
+    font-size: 1.45em;
+  }
+
+  iframe {
+    height: 420px;
+  }
+
+  table {
+    font-size: 0.82em;
+  }
 }
