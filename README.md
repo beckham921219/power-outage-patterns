@@ -148,7 +148,7 @@ The plot below shows the empirical distribution of the TVD under the null hypoth
   frameborder="0"
 ></iframe>
 
-The overlay below shows the distribution of `YEAR` when duration is missing vs. not missing. The two distributions look nearly identical, visually confirming the non-significant p-value.
+The overlay below shows the distribution of `YEAR` when duration is missing vs. not missing. The missing records lean toward the earliest and latest years of the collection window, but because those clusters sit on both sides of the average year, the mean year is almost the same for both groups (a gap of about 0.25 years). Our test statistic is the absolute difference in mean year, so that small gap is exactly why the result is non-significant (p = 0.63).
 
 <iframe
   src="assets/missingness_year.html"
