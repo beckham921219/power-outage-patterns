@@ -28,7 +28,6 @@ Understanding outage duration matters for energy companies, grid operators, and 
 | `TOTAL.CUSTOMERS` | Total electricity customers in the state |
 | `POPULATION` | State population |
 
----
 
 ## Data Cleaning and Exploratory Data Analysis
 
@@ -112,7 +111,6 @@ The table below shows the **median outage duration (in minutes)** by cause categ
 | islanding | 44 | 200.5 | 77.5 | 1 | 1,254 |
 | intentional attack | 403 | 430.0 | 56.0 | 0 | 21,360 |
 
----
 
 ## Assessment of Missingness
 
@@ -298,10 +296,3 @@ The final model reduces MAE by **292 minutes** and improves R² from 0.173 to 0.
 ></iframe>
 
 **Conclusion:** We fail to reject the null hypothesis. Under the RMSE parity test, we do not find evidence that the model performs worse for severe weather outages than for other outage causes. The observed RMSE is actually lower for severe weather outages in this test split: about 5,780 minutes compared to about 7,195 minutes for other causes. This does not prove the model is equally good for every type of outage; it only means that, using RMSE as the fairness metric, the observed difference does not support the claim that severe weather outages have worse prediction performance. Future work could fit a separate model for extremely long-duration outages or add weather-severity and infrastructure-age features.
-
-<div class="project-footer">
-  This project is maintained by
-  <a href="https://github.com/beckham921219"><strong>Beckham Lee</strong></a>
-  and
-  <a href="https://github.com/1WillShine"><strong>Will Shin</strong></a>.
-</div>

@@ -69,6 +69,9 @@ h2 {
   padding-left: 12px;
   color: #1a1a2e;
   margin-top: 2em;
+  font-size: 1.65em;
+  font-weight: 800;
+  line-height: 1.25;
 }
 
 h3 {
@@ -90,6 +93,7 @@ blockquote {
   padding: 12px 20px;
   border-radius: 0 8px 8px 0;
   color: #1a1a2e;
+  font-size: 1.25em;
   font-style: normal;
   margin: 1.5em 0;
 }
