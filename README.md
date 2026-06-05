@@ -5,6 +5,8 @@
 
 **By Beckham Lee and Will Shin**
 
+## Introduction
+
 This project analyzes major power outage events in the continental United States from January 2000 to July 2016. Our central question is:
 
 > **How does the reported cause of a major power outage relate to outage duration, and can we predict outage duration using information available early in an outage?**
@@ -20,7 +22,10 @@ Understanding outage duration matters for energy companies, grid operators, and 
 | `NERC.REGION` | North American Electric Reliability Corporation region |
 | `ANOMALY.LEVEL` | Oceanic El Niño/La Niña index at the time of the outage |
 | `YEAR` / `MONTH` | Time context of the outage |
-| `CUSTOMERS.AFFECTED` | Number of customers affected |
+| `U.S._STATE` | State where the outage occurred |
+| `OUTAGE.START` | Combined timestamp for when the outage began |
+| `START.HOUR` / `START.DAYOFWEEK` / `IS.WEEKEND` | Time-based helper features engineered from `OUTAGE.START` |
+| `CUSTOMERS.AFFECTED` | Number of customers affected, used only for descriptive context and excluded from prediction because it may not be known at the start of an outage |
 | `TOTAL.CUSTOMERS` | Total electricity customers in the state |
 | `POPULATION` | State population |
 
@@ -38,11 +43,11 @@ We performed the following cleaning steps on the raw Excel file:
 
 3. **Combined date and time into datetime objects.** The dataset stored outage start and restoration information across four separate string columns. We combined each date+time pair into a single `pd.Timestamp` column: `OUTAGE.START` and `OUTAGE.RESTORATION`. This reflects the data generating process — a single outage event has one start moment and one end moment — and enables time-based feature engineering.
 
-4. **Kept the provided `OUTAGE.DURATION`.** We did *not* recompute duration from the combined timestamps. Some restoration timestamps are missing while the original duration is present (and vice versa), so recomputing would introduce unnecessary additional missingness.
+4. **Kept the provided `OUTAGE.DURATION`.** We did *not* recompute duration from the combined timestamps. We kept the provided `OUTAGE.DURATION` column rather than recomputing it from timestamps because it is the dataset’s official duration variable and is the response variable for our analysis. The combined timestamp columns were mainly used for time-based feature engineering.
 
-5. **Created time-based helper columns** for modeling and EDA: `START.HOUR`, `START.DAYOFWEEK`, `IS.WEEKEND`, and a `SEASON` column derived from `MONTH`.
+5. **Created time-based helper columns** for modeling and EDA: `START.HOUR`, `START.DAYOFWEEK`, and `IS.WEEKEND`.
 
-6. **Created log-transformed scale features.** `POPULATION` and `TOTAL.CUSTOMERS` are right-skewed, so we added `LOG_POPULATION` and `LOG_TOTAL.CUSTOMERS` for use in modeling.
+6. **Prepared modeling transformations inside the pipeline.** Later in the final model pipeline, we engineer `SEASON`, `LOG_POPULATION`, `LOG_TOTAL.CUSTOMERS`, and `CUSTOMERS.PER.PERSON`. Keeping these transformations inside the `sklearn` Pipeline makes the modeling process cleaner and avoids manually modifying the modeling data outside the pipeline.
 
 The head of the cleaned DataFrame (key columns):
 
@@ -56,7 +61,7 @@ The head of the cleaned DataFrame (key columns):
 
 ### Univariate Analysis
 
-Outage duration is strongly right-skewed: most outages are resolved within a few hundred minutes, but a long tail of severe events extends to tens of thousands of minutes. The median duration (~2,460 min for severe weather) is far below the mean (~3,884 min), confirming the skew. We plot duration on a log₁₀ scale to make the full distribution visible.
+Outage duration is strongly right-skewed. Across all non-missing outages, the median duration is 701 minutes, while the mean is about 2,625 minutes. This gap shows that a small number of extremely long outages pull the mean upward. We plot duration on a log₁₀ scale to make both short and very long outages visible.
 
 <iframe
   src="assets/duration_distribution.html"
@@ -114,9 +119,12 @@ The table below shows the **median outage duration (in minutes)** by cause categ
 
 ### NMAR Analysis
 
-We believe `OUTAGE.DURATION` may be **NMAR** (Not Missing At Random). Duration is derived from the restoration timestamp, so if no restoration was ever recorded, duration is missing. Critically, the probability that restoration goes unrecorded could depend on the duration itself: extremely long or still-ongoing outages may be less likely to have a clean restoration entry in DOE reporting systems, because they span multiple reporting periods or were unresolved when the data was compiled. This is the definition of NMAR — the missingness depends on the unobserved value.
+We selected `OUTAGE.DURATION` for the missingness analysis because it has non-trivial missingness and is central to the project question. The missing values in `OUTAGE.DURATION` are tied to missing restoration date and time values, so the missingness appears to be inherited from whether the restoration event was recorded.
 
-To make this missingness MAR, we would want additional data about: whether the outage was still active at the time the dataset was compiled, the reporting source and submission deadline for each record, and whether utilities with historically longer outages have lower reporting compliance.
+Following the lecture definition, a column is **NMAR** if the probability that a value is missing depends on the actual missing value itself. For `OUTAGE.DURATION`, NMAR is plausible: extremely long, unresolved, or unusually short outages may be less likely to have a clean restoration entry. In that case, the probability that duration is missing would depend on the unobserved true duration.
+
+We believe `OUTAGE.DURATION` is the strongest plausible NMAR candidate in this dataset, but the observed evidence is more directly consistent with MAR through `CAUSE.CATEGORY`. Because NMAR depends on the unobserved true duration values, we cannot confirm or rule out NMAR using the observed data alone. The observed columns suggest another possible explanation: missingness may be related to reporting completeness and outage type, especially whether restoration information was recorded for certain cause categories. Additional data about whether the outage was still active when the dataset was compiled, the reporting source, utility reporting practices, and submission deadlines would help explain the missingness and could make the missingness more clearly MAR rather than NMAR.
+
 
 ### Missingness Dependency
 
@@ -149,9 +157,11 @@ The overlay below shows the distribution of `YEAR` when duration is missing vs. 
   frameborder="0"
 ></iframe>
 
-**Interpretation:** At the 0.05 significance level, the permutation test for `CAUSE.CATEGORY` yields p = 0.001, so we reject the null hypothesis. The missingness of `OUTAGE.DURATION` depends on the observed `CAUSE.CATEGORY` column — this is consistent with **MAR (Missing At Random)**. For `YEAR`, the p-value of 0.627 is well above 0.05, so we fail to reject the null: missingness does not appear to depend on year, consistent with **MCAR** with respect to that column.
+**Interpretation:** At the 0.05 significance level, the permutation test for `CAUSE.CATEGORY` gives p = 0.001, so we reject the null hypothesis. This means the missingness of `OUTAGE.DURATION` depends on the observed `CAUSE.CATEGORY` column. Following the lecture flowchart, this is evidence that `OUTAGE.DURATION` is MAR dependent on `CAUSE.CATEGORY`, assuming the main missingness mechanism does not depend directly on the unobserved duration itself.
 
-Together, these results suggest `OUTAGE.DURATION` is most plausibly **MAR**. This is distinct from **NMAR**, where missingness would depend on the unobserved duration value itself. We cannot rule out NMAR from observed data alone, but MAR is the more defensible conclusion. This matters for our analysis: dropping missing rows may systematically exclude certain cause types, potentially biasing estimates of average duration.
+For `YEAR`, the p-value of 0.627 is above 0.05, so we fail to reject the null hypothesis. This means we do not find evidence that duration missingness depends on year. However, this does not make `OUTAGE.DURATION` MCAR, because MCAR would require missingness to be independent of every other column, and we already found dependence on `CAUSE.CATEGORY`.
+
+Overall, the observed permutation tests show that `OUTAGE.DURATION` is not fully MCAR and is consistent with MAR through `CAUSE.CATEGORY`. NMAR remains plausible because the missingness could still depend on the unobserved true duration, but that cannot be confirmed or ruled out using observed data alone.
 
 ---
 
@@ -163,7 +173,7 @@ From the bivariate analysis, severe weather outages appeared to have much higher
 
 - **Null Hypothesis:** The average outage duration for severe weather outages is the same as for intentional attack outages. Any observed difference is due to random chance.
 - **Alternative Hypothesis:** Severe weather outages last longer on average than intentional attack outages.
-- **Test Statistic:** Difference in group means (mean duration of severe weather − mean duration of intentional attack). We use difference in means rather than TVD because both variables are numeric and we have a directional alternative hypothesis.
+- **Test Statistic:** Difference in group means (mean duration of severe weather minus mean duration of intentional attack). We use a difference in means rather than TVD because we are comparing a numeric outcome across two groups and have a directional alternative hypothesis.
 - **Significance Level:** 0.05
 - **Method:** One-sided permutation test with 5,000 repetitions.
 
@@ -210,7 +220,7 @@ Categorical columns are imputed with the most frequent value and one-hot encoded
 |---|---|---|---|
 | Baseline linear regression | 2,604.7 | 6,911.0 | 0.173 |
 
-The baseline explains about 17% of variance in outage duration. This is a difficult regression problem — duration varies enormously even within the same cause category — so a two-feature linear model is not expected to perform strongly. However, it establishes a clear starting point and confirms that `CAUSE.CATEGORY` does carry predictive signal.
+The baseline explains about 17% of variance in outage duration. This is a difficult regression problem — duration varies enormously even within the same cause category — so a simple linear model with five original features is not expected to perform strongly. However, it establishes a clear starting point and confirms that `CAUSE.CATEGORY` does carry predictive signal.
 
 ---
 
@@ -218,7 +228,7 @@ The baseline explains about 17% of variance in outage duration. This is a diffic
 
 The final model uses a **Random Forest Regressor**, chosen because outage duration depends on nonlinear interactions between cause, climate, location, and time that a linear model cannot capture. Random forests handle these interactions naturally, are robust to outliers, and do not require the target to be normally distributed.
 
-**Engineered features added on top of the baseline:**
+**Engineered features (created inside the pipeline):**
 
 | Feature | Type | Justification |
 |---|---|---|
@@ -226,16 +236,18 @@ The final model uses a **Random Forest Regressor**, chosen because outage durati
 | `START.DAYOFWEEK` | Quantitative | Weekend vs. weekday affects crew availability |
 | `IS.WEEKEND` | Binary | Explicit flag for weekend, when utility staffing is reduced |
 | `SEASON` | Nominal (OHE) | Seasonal demand and weather patterns affect grid stress |
-| `LOG_POPULATION` | Quantitative | State population is right-skewed; log transform linearizes its relationship with duration |
-| `LOG_TOTAL.CUSTOMERS` | Quantitative | Same motivation as population; captures grid scale |
-| `CUSTOMERS.PER.PERSON` | Quantitative | Electrification rate — denser grids may have different repair dynamics |
-| `CLIMATE.REGION` | Nominal (OHE) | Regional grid topology differs significantly (hydro-heavy West vs. industrial Midwest) |
-| `U.S._STATE` | Nominal (OHE) | State-level regulatory and utility differences affect response speed |
+| `LOG_POPULATION` | Quantitative | Compresses the scale of a highly skewed population column; for a tree model, this is not expected to be the main source of improvement |
+| `LOG_TOTAL.CUSTOMERS` | Quantitative | Compresses the scale of a highly skewed customer-base column; the more meaningful scale feature is the ratio `CUSTOMERS.PER.PERSON` |
+| `CUSTOMERS.PER.PERSON` | Quantitative | Captures customer density relative to population, a relationship the forest cannot directly construct from the two original columns |
 
-We used `GridSearchCV` with 3-fold cross-validation (scored on negative MAE) to tune:
+
+**Additional original features** used by the final model but not the baseline: `CLIMATE.REGION`, `U.S._STATE`, `ANOMALY.LEVEL`, the residential/commercial/industrial customer-percentage columns (`RES.CUST.PCT`, `COM.CUST.PCT`, `IND.CUST.PCT`), and the urban/area/water context columns (`POPPCT_URBAN`, `AREAPCT_URBAN`, `PCT_WATER_TOT`). These describe the location, climate, customer base, and geography of each outage. They are background characteristics known early in an outage, not outcomes that require the final restoration time, so they do not leak the target.
+
+
+We used `GridSearchCV` with 3-fold cross-validation, scored using negative MAE, to select the random forest hyperparameters. We tuned these values because they control the bias-variance tradeoff of the forest: `n_estimators` controls how many trees are averaged, while `max_depth` and `min_samples_leaf` control how complex each tree can become. Deeper trees can capture more complex patterns, but they can also overfit; larger leaf sizes reduce overfitting by preventing very small leaves.
 
 | Hyperparameter | Values Searched | Best Value |
-|---|---|---|
+|---|---:|---:|
 | `n_estimators` | 50, 100 | 100 |
 | `max_depth` | 4, 8 | 8 |
 | `min_samples_leaf` | 1, 5 | 5 |
@@ -262,24 +274,22 @@ The final model reduces MAE by **292 minutes** and improves R² from 0.173 to 0.
 
 **Question:** Does the final model perform worse for severe weather outages than for outages caused by other categories?
 
-Severe weather outages have the most variable durations in the dataset, ranging from near-zero to over 49,000 minutes. We want to check whether this variability causes the model to have systematically higher error for this group.
-
 - **Group X:** Severe weather outages (n = 181 in test set)
 - **Group Y:** All other cause categories (n = 188 in test set)
-- **Evaluation metric:** MAE
-- **Null Hypothesis:** The model is fair. Its MAE for severe weather and other outages is roughly equal; any observed difference is due to random chance.
-- **Alternative Hypothesis:** The model performs worse (higher MAE) for severe weather outages than for other causes.
-- **Test Statistic:** MAE(severe weather) − MAE(other causes)
+- **Evaluation metric:** RMSE, an appropriate metric for a regression model that weights the large errors that matter most for long outages
+- **Null Hypothesis:** The model is fair. Its RMSE for severe weather and other outages is roughly equal; any observed difference is due to random chance.
+- **Alternative Hypothesis:** The model performs worse (higher RMSE) for severe weather outages than for other causes.
+- **Test Statistic:** RMSE(severe weather) minus RMSE(other causes)
 - **Significance Level:** 0.05, one-sided permutation test with 5,000 repetitions.
 
-**Observed group MAEs:**
+**Observed group RMSEs:**
 
-| Group | Count | Mean Abs. Error (min) | Median Abs. Error (min) |
-|---|---|---|---|
-| Severe weather | 181 | 3,155.8 | 1,891.2 |
-| Other causes | 188 | 1,500.6 | 387.3 |
+| Group | Count | RMSE (min) |
+|---|---|---|
+| Severe weather | 181 | 5,780.2 |
+| Other causes | 188 | 7,195.4 |
 
-**Observed difference:** 1,655.2 minutes. **p-value: < 0.001.**
+**Observed difference:** -1,415.2 minutes. **p-value approximately 0.49.**
 
 <iframe
   src="assets/fairness_permutation.html"
@@ -288,4 +298,4 @@ Severe weather outages have the most variable durations in the dataset, ranging 
   frameborder="0"
 ></iframe>
 
-**Conclusion:** We reject the null hypothesis. The model has significantly higher prediction error for severe weather outages than for other cause categories (p < 0.001). This is not surprising given that severe weather outages span the widest duration range in the dataset — from minutes to months — making them inherently harder to predict. Future work could explore training a separate model for severe weather outages, or using additional features such as storm severity indices or regional infrastructure age to better capture this variability.
+**Conclusion:** We fail to reject the null hypothesis. Under the RMSE parity test, we do not find evidence that the model performs worse for severe weather outages than for other outage causes. The observed RMSE is actually lower for severe weather outages in this test split: about 5,780 minutes compared to about 7,195 minutes for other causes. This does not prove the model is equally good for every type of outage; it only means that, using RMSE as the fairness metric, the observed difference does not support the claim that severe weather outages have worse prediction performance. Future work could fit a separate model for extremely long-duration outages or add weather-severity and infrastructure-age features.
